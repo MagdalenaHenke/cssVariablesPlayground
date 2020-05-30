@@ -1,0 +1,85 @@
+<html lang="en">
+  <head>
+    <title>CSS Variables Playground</title>
+    <style>
+      :root {
+        --dark-theme-background: dimgrey;
+        --dark-theme-text: ghostwhite;
+        --light-theme-background: ghostwhite;
+        --light-theme-text: dimgrey;
+
+        --background-color: var(--dark-theme-background);
+        --text-color: var(--dark-theme-text);
+
+        font-size: 30px;
+      }
+
+      html * {
+        font-family: sans-serif;
+        box-sizing: border-box;
+      }
+
+      body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+
+        text-align: center;
+        padding: 3rem 1rem
+      }
+
+      p {
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 70%;
+      }
+
+      button {
+        font-size: 1rem;
+        background-color: var(--text-color);
+        border: 0.1rem solid var(--background-color);
+        box-shadow: 0 0 0 0.1rem var(--text-color);
+        border-radius: 1rem;
+        padding: 0.3rem 0.5rem;
+        color: var(--background-color);
+        margin: 1rem;
+      }
+
+      button:focus {
+        outline: none;
+        border: 0.1rem dashed var(--background-color);
+      }
+
+      button:active {
+        border: 0.1rem dashed var(--text-color);
+        color: var(--text-color);
+        background-color: var(--background-color);
+        box-shadow: 0 0 0 0.1rem var(--background-color);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>CSS Variables Playground</h1>
+      <p>Toggling between light and dark mode happens only via setting css variables on the root element.</p>
+      <button id="button-dark-mode">Turn on dark mode</button>
+    </main>
+
+    <script>
+      const toggleTheme = (function() {
+        let isDarkThemeActive = true;
+
+        return () => {
+          const newTheme = isDarkThemeActive ? 'light' : 'dark';
+
+          document.querySelector(':root').style.setProperty('--background-color', `var(--${newTheme}-theme-background)`);
+          document.querySelector(':root').style.setProperty('--text-color', `var(--${newTheme}-theme-text)`);
+          isDarkThemeActive = !isDarkThemeActive;
+        }
+      })()
+
+      document.getElementById("button-dark-mode").addEventListener("click", toggleTheme);
+
+    </script>
+
+  </body>
+<html>
