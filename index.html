@@ -8,6 +8,8 @@
         --light-theme-background: ghostwhite;
         --light-theme-text: dimgrey;
 
+        --active-color: lightgrey;
+
         --background-color: var(--dark-theme-background);
         --text-color: var(--dark-theme-text);
 
@@ -41,6 +43,9 @@
         border-radius: 1rem;
         padding: 0.3rem 0.5rem;
         color: var(--background-color);
+      }
+
+      [type="button"] {
         margin: 1rem;
       }
 
@@ -50,10 +55,26 @@
       }
 
       button:active {
-        border: 0.1rem dashed var(--text-color);
+        background-color: var(--active-color);
+        box-shadow: 0 0 0 0.1rem var(--active-color);
+      }
+
+      [role='switch'] {
+        --text-color: white;
+        --background-color: black;
+        padding: 0.1rem 0.2rem;
+        margin: 0.2rem;
+      }
+
+      [role='switch'] span {
+        padding: 0.1 0.3rem;
+        border-radius: 0.8rem;
+      }
+
+      [role='switch'][aria-checked='true'] :first-child,
+      [role='switch'][aria-checked='false'] :last-child {
+        background: var(--background-color);
         color: var(--text-color);
-        background-color: var(--background-color);
-        box-shadow: 0 0 0 0.1rem var(--background-color);
       }
     </style>
   </head>
@@ -61,23 +82,71 @@
     <main>
       <h1>CSS Variables Playground</h1>
       <p>Toggling between light and dark mode happens only via setting css variables on the root element.</p>
-      <button id="button-dark-mode">Turn on dark mode</button>
+      <div>
+        <label id="dark-mode-toggle-label">Dark Mode</label>
+        <button
+          aria-labelledby="dark-mode-toggle-label"
+          id="dark-mode-toggle"
+          role="switch"
+          aria-checked="true"
+        >
+          <span>on</span>
+          <span>off</span>
+        </button>
+      </div>
+
+
+
+      <button type="button" id="button-random-mode">Switch to a random mode</button> <!-- Leena: Make this an actual toggle, not a changing button -->
+      <button type="button" id="button-default-mode">Reset to default colors</button>
     </main>
 
     <script>
-      const toggleTheme = (function() {
-        let isDarkThemeActive = true;
+      const darkMode = (turnOn) => {
+        let darkModeToggle = document.getElementById('dark-mode-toggle');
+        if (turnOn === undefined) return darkModeToggle.getAttribute('aria-checked') === 'true';
+        darkModeToggle.setAttribute('aria-checked', turnOn);
+      }
 
-        return () => {
-          const newTheme = isDarkThemeActive ? 'light' : 'dark';
+      const setRootVars = (background, text) => {
+        document.querySelector(':root').style.setProperty('--background-color', background);
+        document.querySelector(':root').style.setProperty('--text-color', text);
+      }
 
-          document.querySelector(':root').style.setProperty('--background-color', `var(--${newTheme}-theme-background)`);
-          document.querySelector(':root').style.setProperty('--text-color', `var(--${newTheme}-theme-text)`);
-          isDarkThemeActive = !isDarkThemeActive;
-        }
-      })()
 
-      document.getElementById("button-dark-mode").addEventListener("click", toggleTheme);
+      // source: https://stackoverflow.com/questions/3942878/how-to-decide-font-color-in-white-or-black-depending-on-background-color
+      const pickLightAndDarkForRandomColor = (c) => {
+        const color = (c.charAt(0) === '#') ? c.substring(1, 7) : c;
+        const r = parseInt(color.substring(0, 2), 16); // hexToR
+        const g = parseInt(color.substring(2, 4), 16); // hexToG
+        const b = parseInt(color.substring(4, 6), 16); // hexToB
+        const isBright = ((r * 0.299) + (g * 0.587) + (b * 0.114)) > 186;
+        return isBright ? [c, 'black'] : ['white', c];
+      }
+
+      const toggleDarkMode = (evt) => {
+        const isDarkModeOn = darkMode();
+        const newTheme = isDarkModeOn ? 'light' : 'dark';
+        setRootVars(`var(--${newTheme}-theme-background)`, `var(--${newTheme}-theme-text)`);
+        darkMode(!isDarkModeOn);
+      };
+
+      const switchRandomColor = () => {
+        const randomColor = Math.floor(Math.random()*16777215).toString(16);
+        const [lightColor, darkColor] = pickLightAndDarkForRandomColor(randomColor);
+
+        darkMode() ? setRootVars(darkColor, lightColor) : setRootVars(lightColor, darkColor);
+      }
+
+      const resetDefaultStyle = () => {
+        setRootVars(`var(--dark-theme-background)`, `var(--dark-theme-text)`);
+        darkMode(true)
+      }
+
+      document.getElementById("dark-mode-toggle").addEventListener("click", toggleDarkMode);
+      document.getElementById("button-random-mode").addEventListener("click", switchRandomColor);
+      document.getElementById("button-default-mode").addEventListener("click", resetDefaultStyle);
+
 
     </script>
 
