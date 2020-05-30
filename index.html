@@ -3,15 +3,24 @@
     <title>CSS Variables Playground</title>
     <style>
       :root {
+        /* initial default theme */
         --dark-theme-background: dimgrey;
         --dark-theme-text: ghostwhite;
         --light-theme-background: ghostwhite;
         --light-theme-text: dimgrey;
+        --dark-theme-active: lightgrey;
 
-        --active-color: lightgrey;
+        /* color options for the current page */
+        --light-color-current: ghostwhite;
+        --dark-color-current: dimgrey;
+        --mid-color-current: lightgrey;
 
-        --background-color: var(--dark-theme-background);
-        --text-color: var(--dark-theme-text);
+        /* colors directly used in elements of the page,
+        e.g. background-color switches between being --light-color-current and --dark-color-current
+        based on whether dark mode is enabled */
+        --background-color: var(--dark-color-current);
+        --text-color: var(--light-color-current);
+        --active-color: var(--mid-color-current);
 
         font-size: 30px;
       }
@@ -22,8 +31,8 @@
       }
 
       body {
-        background-color: var(--background-color);
         color: var(--text-color);
+        background-color: var(--background-color);
 
         text-align: center;
         padding: 3rem 1rem
@@ -36,13 +45,15 @@
       }
 
       button {
-        font-size: 1rem;
+        color: var(--background-color); /* alternating hues */
         background-color: var(--text-color);
-        border: 0.1rem solid var(--background-color);
+        border-color: var(--background-color);
         box-shadow: 0 0 0 0.1rem var(--text-color);
+
+        font-size: 1rem;
+        border: 0.1rem solid;
         border-radius: 1rem;
         padding: 0.3rem 0.5rem;
-        color: var(--background-color);
       }
 
       [type="button"] {
@@ -50,8 +61,10 @@
       }
 
       button:focus {
+        border-color: var(--background-color);
+
+        border: 0.1rem dashed;
         outline: none;
-        border: 0.1rem dashed var(--background-color);
       }
 
       button:active {
@@ -59,9 +72,10 @@
         box-shadow: 0 0 0 0.1rem var(--active-color);
       }
 
-      [role='switch'] {
+      [role='switch'] { /* switch remains black and white */
         --text-color: white;
         --background-color: black;
+
         padding: 0.1rem 0.2rem;
         margin: 0.2rem;
       }
@@ -71,6 +85,7 @@
         border-radius: 0.8rem;
       }
 
+      /* show On/Off span labelling the currently active state highlighted */
       [role='switch'][aria-checked='true'] :first-child,
       [role='switch'][aria-checked='false'] :last-child {
         background: var(--background-color);
@@ -84,71 +99,65 @@
       <p>Toggling between light and dark mode happens only via setting css variables on the root element.</p>
       <div>
         <label id="dark-mode-toggle-label">Dark Mode</label>
+        <!-- aria-checked keep state of being in dark mode or not -- TODO: could pull that into state-->
         <button
-          aria-labelledby="dark-mode-toggle-label"
           id="dark-mode-toggle"
           role="switch"
           aria-checked="true"
+          aria-labelledby="dark-mode-toggle-label"
         >
           <span>on</span>
           <span>off</span>
         </button>
       </div>
-
-
-
-      <button type="button" id="button-random-mode">Switch to a random mode</button> <!-- Leena: Make this an actual toggle, not a changing button -->
+      <button type="button" id="button-random-mode">Generate random page color</button>
       <button type="button" id="button-default-mode">Reset to default colors</button>
     </main>
 
     <script>
+      // getter-setter toggling aria-checked on color toggle
       const darkMode = (turnOn) => {
         let darkModeToggle = document.getElementById('dark-mode-toggle');
         if (turnOn === undefined) return darkModeToggle.getAttribute('aria-checked') === 'true';
         darkModeToggle.setAttribute('aria-checked', turnOn);
       }
 
-      const setRootVars = (background, text) => {
-        document.querySelector(':root').style.setProperty('--background-color', background);
-        document.querySelector(':root').style.setProperty('--text-color', text);
+      // set set of 3 color options
+      const setRootVars = (darkColor, lightColor, midColor) => {
+        const root = document.querySelector(':root');
+        if (darkColor) root.style.setProperty('--dark-color-current', darkColor);
+        if (lightColor) root.style.setProperty('--light-color-current', lightColor);
+        if (midColor) root.style.setProperty('--mid-color-current', midColor);
       }
 
-
-      // source: https://stackoverflow.com/questions/3942878/how-to-decide-font-color-in-white-or-black-depending-on-background-color
-      const pickLightAndDarkForRandomColor = (c) => {
-        const color = (c.charAt(0) === '#') ? c.substring(1, 7) : c;
-        const r = parseInt(color.substring(0, 2), 16); // hexToR
-        const g = parseInt(color.substring(2, 4), 16); // hexToG
-        const b = parseInt(color.substring(4, 6), 16); // hexToB
-        const isBright = ((r * 0.299) + (g * 0.587) + (b * 0.114)) > 186;
-        return isBright ? [c, 'black'] : ['white', c];
-      }
-
+      // switch current background and text colors to light and dark based on whether we're entering dark mode
       const toggleDarkMode = (evt) => {
         const isDarkModeOn = darkMode();
-        const newTheme = isDarkModeOn ? 'light' : 'dark';
-        setRootVars(`var(--${newTheme}-theme-background)`, `var(--${newTheme}-theme-text)`);
+        const root = document.querySelector(':root');
+        root.style.setProperty('--background-color', `var(--${isDarkModeOn ? 'light' : 'dark'}-color-current)`);
+        root.style.setProperty('--text-color', `var(--${isDarkModeOn ? 'dark' : 'light'}-color-current)`);
         darkMode(!isDarkModeOn);
       };
 
-      const switchRandomColor = () => {
-        const randomColor = Math.floor(Math.random()*16777215).toString(16);
-        const [lightColor, darkColor] = pickLightAndDarkForRandomColor(randomColor);
+      // inspired by https://codepen.io/neilorangepeel/pen/GopwNr
+      const generateAndSetRandomColor = () => {
+        const hue = Math.floor(Math.random() * 360);
+        const lightColor = `hsl(${hue}, 100%, 50%)`;
+        const darkColor = `hsl(${hue}, 100%, 20%)`;
+        const midColor = `hsl(${hue}, 100%, 30%)`;
 
-        darkMode() ? setRootVars(darkColor, lightColor) : setRootVars(lightColor, darkColor);
+        setRootVars(darkColor, lightColor, midColor)
       }
 
-      const resetDefaultStyle = () => {
-        setRootVars(`var(--dark-theme-background)`, `var(--dark-theme-text)`);
+      const resetToDefaultStyle = () => {
+        setRootVars("var(--dark-theme-background)", "var(--dark-theme-text)", "var(--dark-theme-active");
         darkMode(true)
       }
 
+      // set event handlers
       document.getElementById("dark-mode-toggle").addEventListener("click", toggleDarkMode);
-      document.getElementById("button-random-mode").addEventListener("click", switchRandomColor);
-      document.getElementById("button-default-mode").addEventListener("click", resetDefaultStyle);
-
-
+      document.getElementById("button-random-mode").addEventListener("click", generateAndSetRandomColor);
+      document.getElementById("button-default-mode").addEventListener("click", resetToDefaultStyle);
     </script>
-
   </body>
 <html>
