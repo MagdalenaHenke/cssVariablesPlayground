@@ -48,12 +48,12 @@
       button {
         color: var(--background-color); /* alternating hues */
         background-color: var(--text-color);
-        border-color: var(--background-color);
         box-shadow: 0 0 0 0.1rem var(--text-color);
-
-        font-size: 1rem;
         border: 0.1rem solid;
         border-radius: 1rem;
+        border-color: var(--background-color);
+
+        font-size: 1rem;
         padding: 0.3rem 0.5rem;
       }
 
@@ -62,9 +62,9 @@
       }
 
       button:focus {
+        border: 0.1rem dashed;
         border-color: var(--background-color);
 
-        border: 0.1rem dashed;
         outline: none;
       }
 
@@ -83,7 +83,7 @@
       }
 
       [role='switch'] span {
-        padding: 0.1 0.3rem;
+        padding: 0 0.3rem;
         border-radius: 0.8rem;
       }
 
