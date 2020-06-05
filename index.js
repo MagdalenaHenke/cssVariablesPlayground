@@ -1,4 +1,5 @@
 // getter-setter toggling aria-checked on color toggle
+// todo: manage this state with js but oooh well
 const darkMode = (turnOn) => {
   let darkModeToggle = document.getElementById('dark-mode-toggle');
   if (turnOn === undefined) return darkModeToggle.getAttribute('aria-checked') === 'true';
@@ -34,7 +35,6 @@ const generateAndSetRandomColor = () => {
 
 const resetToDefaultStyle = () => {
   setRootVars("var(--dark-theme-background)", "var(--dark-theme-text)", "var(--dark-theme-active");
-  darkMode(true)
 }
 
 // set event handlers
